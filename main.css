@@ -1,0 +1,70 @@
+/* Container to hold both the sidebar and the text area */
+#container {
+    display: flex; /* Use flexbox to position sidebar and textarea side by side */
+    height: 100vh; /* Full viewport height */
+    width: 100vw;  /* Full viewport width */
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Sidebar styles */
+  #sidebar {
+    width: 300px; /* Fixed width for the sidebar */
+    background-color: #f1f1f1;
+    padding: 40px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+  }
+  
+  /* Text area styles */
+  #markdown {
+    flex-grow: 1; /* Text area takes up the remaining width */
+    height: 100%; /* Full height of the container */
+    padding: 20px;
+    border: none;
+    resize: none;
+    outline: none;
+    font-size: 16px;
+    line-height: 1.5;
+    box-sizing: border-box;
+  }
+  
+  /* Button styling */
+  #submitButton {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 10px 20px;
+    font-size: 14px;
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text */
+    border: none;
+    cursor: pointer;
+  }
+  
+  #submitButton:hover {
+    background-color: #45a049; /* Darker green on hover */
+  }
+  
+  /* Note list styles */
+  .note {
+    background-color: white;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+  }
+  
+  .note:hover {
+    background-color: #f0f0f0;
+  }
+  
+  /* Note content display */
+  #noteContent {
+    display: none;
+    padding: 10px;
+    background-color: #eaeaea;
+    border: 1px solid #ccc;
+    margin-top: 10px;
+  }
+  

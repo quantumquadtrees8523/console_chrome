@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Console</title>
+
+    <!-- Link to the external CSS file -->
+    <link rel="stylesheet" href="main.css">
+  </head>
+  <body>
+    <!-- Container that holds both the sidebar and the text area -->
+    <div id="container">
+      <!-- Sidebar that is always open -->
+      <div id="sidebar">
+        <h3>Submitted Notes</h3>
+        <div id="notesList"></div> <!-- List of submitted notes -->
+      </div>
+
+      <!-- Text area -->
+      <textarea id="markdown" placeholder="Type here..."></textarea>
+    </div>
+
+    <button id="submitButton">Submit Note</button>
+
+    <div id="noteContent"></div>
+
+    <!-- Link to external JavaScript file -->
+    <script src="functionality.js"></script>
+  </body>
+</html>
