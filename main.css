@@ -1,70 +1,134 @@
 /* Container to hold both the sidebar and the text area */
 #container {
-    display: flex; /* Use flexbox to position sidebar and textarea side by side */
-    height: 100vh; /* Full viewport height */
-    width: 100vw;  /* Full viewport width */
-    margin: 0;
-    padding: 0;
-  }
-  
-  /* Sidebar styles */
-  #sidebar {
-    width: 300px; /* Fixed width for the sidebar */
-    background-color: #f1f1f1;
-    padding: 40px;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
-    box-sizing: border-box;
-  }
-  
-  /* Text area styles */
-  #markdown {
-    flex-grow: 1; /* Text area takes up the remaining width */
-    height: 100%; /* Full height of the container */
-    padding: 20px;
-    border: none;
-    resize: none;
-    outline: none;
-    font-size: 16px;
-    line-height: 1.5;
-    box-sizing: border-box;
-  }
-  
-  /* Button styling */
-  #submitButton {
-    position: absolute;
-    top: 10px;
-    left: 10px;
+  display: flex; /* Use flexbox to position sidebar and textarea side by side */
+  height: 100vh; /* Full viewport height */
+  width: 100vw;  /* Full viewport width */
+  margin: 0;
+  padding: 0;
+}
+
+/* Sidebar styles */
+#sidebar {
+  width: 300px; /* Fixed width for the sidebar on larger screens */
+  background-color: #f1f1f1;
+  padding: 40px;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+/* Main area styles (for textarea and buttons) */
+#mainArea {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  padding: 20px;
+}
+
+/* Text area styles */
+/* Text area styles */
+#markdown {
+  flex-grow: 1; /* Text area takes up the remaining height */
+  resize: none;
+  outline: none;
+  font-size: 16px;
+  line-height: 1.5;
+  box-sizing: border-box;
+  border: none; /* Removes the border */
+}
+
+/* Flexbox layout for the button container */
+#buttonContainer {
+  display: flex;
+  justify-content: start; /* Aligns buttons to the left */
+  gap: 10px; /* Adds spacing between the buttons */
+  margin-top: 10px; /* Add some space above the buttons */
+}
+
+/* Button styles */
+#submitButton, #refreshButton {
     padding: 10px 20px;
     font-size: 14px;
-    background-color: #4CAF50; /* Green background */
-    color: white; /* White text */
+    background-color: rgba(69, 236, 119, 0.363); /* Green background for submit */
+    color: black;
     border: none;
     cursor: pointer;
+    border-radius: 5px;
+}
+
+#refreshButton {
+    background-color: rgba(69, 85, 236, 0.363); /* Blue background for refresh */
+}
+
+#submitButton:hover {
+    background-color: rgba(48, 179, 87, 0.363); /* Darker green on hover */
+}
+
+#refreshButton:hover {
+    background-color: rgba(42, 61, 234, 0.363);; /* Darker blue on hover */
+}
+
+/* Note list styles */
+.note {
+  background-color: white;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.note:hover {
+  background-color: #f0f0f0;
+}
+
+/* Note content display */
+#noteContent {
+  display: none;
+  padding: 10px;
+  background-color: #eaeaea;
+  border: 1px solid #ccc;
+  margin-top: 10px;
+}
+
+/* Responsive design for smaller screens */
+
+/* For screens with a width of 768px or less (tablets, smaller laptops) */
+@media (max-width: 768px) {
+  #sidebar {
+      width: 200px; /* Reduce sidebar width */
+      padding: 20px;
   }
-  
-  #submitButton:hover {
-    background-color: #45a049; /* Darker green on hover */
+
+  #markdown {
+      font-size: 14px; /* Slightly smaller font size for smaller screens */
+      padding: 10px;    /* Less padding for smaller screens */
   }
-  
-  /* Note list styles */
-  .note {
-    background-color: white;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    cursor: pointer;
+
+  #submitButton {
+      font-size: 12px; /* Smaller button text */
+      padding: 8px 15px;
   }
-  
-  .note:hover {
-    background-color: #f0f0f0;
+}
+
+/* For screens with a width of 576px or less (mobile devices) */
+@media (max-width: 576px) {
+  #container {
+      flex-direction: column; /* Stack the sidebar and textarea vertically */
   }
-  
-  /* Note content display */
-  #noteContent {
-    display: none;
-    padding: 10px;
-    background-color: #eaeaea;
-    border: 1px solid #ccc;
-    margin-top: 10px;
+
+  #sidebar {
+      width: 100%; /* Sidebar takes full width */
+      box-shadow: none; /* Remove shadow on small screens */
+      padding: 10px;
   }
-  
+
+  #markdown {
+      width: 100%;  /* Text area takes full width */
+      height: 200px; /* Reduce height for mobile */
+      font-size: 14px; /* Smaller font size */
+  }
+
+  #submitButton {
+      font-size: 12px;
+      padding: 8px 12px;
+  }
+}
