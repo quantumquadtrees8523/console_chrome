@@ -5,12 +5,24 @@ document.addEventListener('DOMContentLoaded', function () {
     if (noteContent) {
         const parsedNote = JSON.parse(noteContent);
 
-        // Convert ai_updated_note and human_note to markdown, with spacing in between
+        // Separate and parse markdown for AI and Human notes
         const aiUpdatedNoteMarkdown = parsedNote.ai_updated_note || "";
         const humanNoteMarkdown = parsedNote.human_note || "";
 
-        // Use marked to parse markdown to HTML, with spacing between sections
-        noteContentElement.innerHTML = marked.parse(`${aiUpdatedNoteMarkdown}\n\n\n\n\n\n\n${humanNoteMarkdown}`);
+        // Use marked to parse markdown for each note section
+        const aiNoteHTML = marked.parse(`<h3>AI Updated Note</h3>
+            <div>${aiUpdatedNoteMarkdown}</div>`);
+
+        const humanNoteHTML = marked.parse(
+            `<h3>Human Note</h3>
+            <div>${humanNoteMarkdown}</div>`);
+
+        // Combine both sections and set them as innerHTML
+        noteContentElement.innerHTML = `
+            <div class="note-section">${aiNoteHTML}</div>
+            <div class="spacer"></div>
+            <div class="note-section">${humanNoteHTML}</div>
+        `;
     } else {
         noteContentElement.textContent = "No content found.";
     }

@@ -1,73 +1,90 @@
-/* Container to hold both the sidebar and the text area */
+/* Reset for body and html to occupy the full viewport */
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* Prevent overflow scrolling */
+}
+
+/* Main container setup */
 #container {
-  display: flex; /* Use flexbox to position sidebar and textarea side by side */
-  height: 100vh; /* Full viewport height */
-  width: 100vw;  /* Full viewport width */
+  display: flex;
+  height: 100vh;
+  width: 100vw;
   margin: 0;
   padding: 0;
 }
 
-/* Sidebar styles */
+/* Sidebar styling */
 #sidebar {
-  width: 300px; /* Fixed width for the sidebar on larger screens */
+  width: 300px; /* Adjusted width to prevent it from taking too much space */
   background-color: #f1f1f1;
-  padding: 40px;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  padding: 20px;
   box-sizing: border-box;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  overflow-y: auto; /* Allow scrolling if content exceeds height */
 }
 
-/* Main area styles (for textarea and buttons) */
+/* Main area styles (for Quill editor and buttons) */
 #mainArea {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   padding: 20px;
-}
-
-/* Text area styles */
-/* Text area styles */
-#markdown {
-  flex-grow: 1; /* Text area takes up the remaining height */
-  resize: none;
-  outline: none;
-  font-size: 16px;
-  line-height: 1.5;
   box-sizing: border-box;
-  border: none; /* Removes the border */
+  overflow: hidden;
 }
 
-/* Flexbox layout for the button container */
+/* Quill editor container */
+#editor-container {
+  flex-grow: 1; /* Allow editor container to take up remaining height */
+  width: 100%; /* Full width within main area */
+  max-width: calc(100vw - 320px); /* Prevents overflow by subtracting sidebar width + padding */
+  height: calc(100vh - 100px); /* Adjust height to fit screen */
+  border: 1px solid #ccc; /* Border around the editor */
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+/* Quill editor content styling */
+.ql-editor {
+  min-height: 100%; /* Ensure editor content fills the container */
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto; /* Allow vertical scrolling if content exceeds height */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  white-space: pre-wrap; /* Wrap text to prevent overflow */
+  word-wrap: break-word; /* Break long words if needed */
+  max-width: 100%; /* Prevent content from exceeding the container width */
+}
+
+/* Button container layout */
 #buttonContainer {
   display: flex;
-  justify-content: start; /* Aligns buttons to the left */
-  gap: 10px; /* Adds spacing between the buttons */
-  margin-top: 10px; /* Add some space above the buttons */
+  justify-content: start;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-/* Button styles */
-#submitButton, #refreshButton {
-    padding: 10px 20px;
-    font-size: 14px;
-    background-color: rgba(69, 236, 119, 0.363); /* Green background for submit */
-    color: black;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
+/* Button styling */
+#submitButton, #refreshButton, #clearButton {
+  padding: 10px 20px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.2s;
+  background-color: rgba(69, 236, 119, 0.363); /* Default green */
 }
 
-#refreshButton {
-    background-color: rgba(69, 85, 236, 0.363); /* Blue background for refresh */
-}
+#refreshButton { background-color: rgba(69, 85, 236, 0.363); }
+#clearButton { background-color: rgba(255, 0, 0, 0.363); }
 
-#submitButton:hover {
-    background-color: rgba(48, 179, 87, 0.363); /* Darker green on hover */
-}
+#submitButton:hover { background-color: rgba(48, 179, 87, 0.363); }
+#refreshButton:hover { background-color: rgba(42, 61, 234, 0.363); }
+#clearButton:hover { background-color: rgba(150, 0, 0, 0.363); }
 
-#refreshButton:hover {
-    background-color: rgba(42, 61, 234, 0.363);; /* Darker blue on hover */
-}
-
-/* Note list styles */
+/* Note styling */
 .note {
   background-color: white;
   padding: 10px;
@@ -75,60 +92,34 @@
   border: 1px solid #ddd;
   cursor: pointer;
 }
+.note:hover { background-color: #f0f0f0; }
 
-.note:hover {
-  background-color: #f0f0f0;
-}
+/* Responsive adjustments */
 
-/* Note content display */
-#noteContent {
-  display: none;
-  padding: 10px;
-  background-color: #eaeaea;
-  border: 1px solid #ccc;
-  margin-top: 10px;
-}
-
-/* Responsive design for smaller screens */
-
-/* For screens with a width of 768px or less (tablets, smaller laptops) */
+/* Tablet */
 @media (max-width: 768px) {
   #sidebar {
-      width: 200px; /* Reduce sidebar width */
-      padding: 20px;
+      width: 250px;
+      padding: 15px;
   }
 
-  #markdown {
-      font-size: 14px; /* Slightly smaller font size for smaller screens */
-      padding: 10px;    /* Less padding for smaller screens */
-  }
-
-  #submitButton {
-      font-size: 12px; /* Smaller button text */
+  #submitButton, #refreshButton, #clearButton {
+      font-size: 12px;
       padding: 8px 15px;
   }
 }
 
-/* For screens with a width of 576px or less (mobile devices) */
+/* Mobile */
 @media (max-width: 576px) {
-  #container {
-      flex-direction: column; /* Stack the sidebar and textarea vertically */
-  }
-
+  #container { flex-direction: column; }
   #sidebar {
-      width: 100%; /* Sidebar takes full width */
-      box-shadow: none; /* Remove shadow on small screens */
+      width: 100%;
       padding: 10px;
+      box-shadow: none;
   }
 
-  #markdown {
-      width: 100%;  /* Text area takes full width */
-      height: 200px; /* Reduce height for mobile */
-      font-size: 14px; /* Smaller font size */
-  }
-
-  #submitButton {
-      font-size: 12px;
-      padding: 8px 12px;
+  #editor-container {
+      width: 100%;
+      height: calc(100vh - 60px); /* Adjust for button container */
   }
 }

@@ -1,22 +1,33 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const textarea = document.getElementById('markdown');
     const submitButton = document.getElementById('submitButton');
     const refreshButton = document.getElementById('refreshButton');
     const notesList = document.getElementById('notesList');
+    
+    // Initialize Quill editor without a toolbar
+    const quill = new Quill('#editor-container', {
+        theme: 'snow',
+        modules: {
+            toolbar: false  // Disables the toolbar
+        }
+    });
 
-    // Load saved content from localStorage
-    textarea.value = localStorage.getItem('textContent') || '';
+
+    // Load saved content from localStorage and set it to Quill editor
+    const savedContent = localStorage.getItem('textContent') || '';
+    quill.root.innerHTML = savedContent;
+
+    // Load submitted notes from localStorage
     const storedNotes = localStorage.getItem('submittedNotes');
     const submittedNotes = storedNotes ? JSON.parse(storedNotes) : [];
 
-    // Save content to localStorage every time it changes
-    textarea.addEventListener('input', function () {
-        localStorage.setItem('textContent', textarea.value);
+    // Save content from Quill editor to localStorage
+    quill.on('text-change', function () {
+        localStorage.setItem('textContent', quill.root.innerHTML);
     });
 
     // Submit a note
     submitButton.addEventListener('click', function () {
-        const noteText = textarea.value.trim();
+        const noteText = quill.root.innerHTML; // Get HTML from Quill
         if (noteText) {
             const note = {
                 human_note: { note: noteText },
@@ -26,12 +37,12 @@ document.addEventListener('DOMContentLoaded', function () {
             localStorage.setItem('submittedNotes', JSON.stringify(submittedNotes));
             writeToFirestore(note);
             addNoteToSidebar(note, submittedNotes.length - 1);
-            textarea.value = ''; // Clear textarea after submission
+            quill.root.innerHTML = ''; // Clear editor after submission
             localStorage.removeItem('textContent');
         }
     });
 
-    // Refresh button
+    // Refresh button functionality
     refreshButton.addEventListener('click', async function () {
         const notesFromFirestore = await readFromFirestore();
         localStorage.setItem('submittedNotes', JSON.stringify(notesFromFirestore.notes));
@@ -45,7 +56,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function addNoteToSidebar(note, index) {
         const noteDiv = document.createElement('div');
         noteDiv.className = 'note';
-        noteDiv.textContent = `${note.note_headline}`;
+        noteDiv.textContent = note.note_headline;
         noteDiv.addEventListener('click', function () {
             localStorage.setItem('selectedNoteContent', JSON.stringify(note));
             window.open('noteView.html', '_blank');
@@ -58,35 +69,18 @@ document.addEventListener('DOMContentLoaded', function () {
         addNoteToSidebar(note, index);
     });
 
-    textarea.addEventListener('keydown', function (event) {
-        if (event.key === 'Tab') {
-            event.preventDefault();  // Prevent default tab behavior
-
-            // Get the current cursor position
-            const start = textarea.selectionStart;
-            const end = textarea.selectionEnd;
-
-            // Insert the tab character
-            textarea.value = textarea.value.substring(0, start) + '\t' + textarea.value.substring(end);
-
-            // Move the cursor after the tab character
-            textarea.selectionStart = textarea.selectionEnd = start + 1;
-        }
-    });
-
+    // Refresh the page when it becomes visible
     document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState === 'visible') {
             localStorage.setItem('submittedNotes', []);
             const notesFromFirestore = await readFromFirestore();
             localStorage.setItem('submittedNotes', JSON.stringify(notesFromFirestore.notes));
-            location.reload();  // Refresh the page when it becomes visible
+            location.reload();
         }
     });
-
 });
 
 const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
-// const HOSTNAME = 'http://localhost:8080'
 
 async function writeToFirestore(note) {
     try {
@@ -144,4 +138,3 @@ function getOAuthToken() {
         });
     });
 }
-

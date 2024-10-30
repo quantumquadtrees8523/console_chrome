@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Console</title>
     <link rel="stylesheet" href="main.css">
+    <link href="quill.snow.css" rel="stylesheet">
   </head>
   <body>
     <div id="container">
@@ -14,10 +15,12 @@
       </div>
 
       <div id="mainArea">
-        <textarea id="markdown" placeholder="Type here..."></textarea>
+        <div id="editor-container"></div> <!-- Removed inline height -->
+        <script src="quill.min.js"></script>
         <div id="buttonContainer">
           <button id="submitButton">Submit Note</button>
           <button id="refreshButton">&#x21bb; Refresh Sidebar</button>
+          <button id="clearButton">Clear Note</button>
         </div>
       </div>
     </div>
