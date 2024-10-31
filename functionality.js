@@ -11,22 +11,53 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    const liveSummary = localStorage.getItem('live_summary') || 'No summary available';
+    
+    summaryCanvas.textContent = liveSummary;
+    
+    // quill.on('text-change', function () {
+    //     summaryCanvas.textContent = quill.root.innerText;  // Update summary dynamically
+    // });
 
+    
     // Load saved content from localStorage and set it to Quill editor
     const savedContent = localStorage.getItem('textContent') || '';
     quill.root.innerHTML = savedContent;
 
     // Load submitted notes from localStorage
     const storedNotes = localStorage.getItem('submittedNotes');
-    const submittedNotes = storedNotes ? JSON.parse(storedNotes) : [];
+    let submittedNotes;
+
+    try {
+        submittedNotes = storedNotes ? JSON.parse(storedNotes) : [];
+    } catch (error) {
+        console.error("Error parsing storedNotes:", error);
+        submittedNotes = [];
+    }
+    
+    // Optional chaining with nullish coalescing to make it more robust
+    submittedNotes = Array.isArray(submittedNotes) ? submittedNotes : [];    
 
     // Save content from Quill editor to localStorage
     quill.on('text-change', function () {
         localStorage.setItem('textContent', quill.root.innerHTML);
     });
 
-    // Submit a note
-    submitButton.addEventListener('click', function () {
+    document.addEventListener('keydown', function (event) {
+        // Check if Command (metaKey) + S (key = 's') is pressed
+        if (event.metaKey && event.key === 's') {
+            event.preventDefault();  // Prevent the default save action
+    
+            // Place your custom save logic here, for example:
+            console.log("Command + S was pressed - Default action prevented");
+            
+            // Call a custom save function if needed
+            // customSaveFunction();
+        }
+    });
+
+    // // Submit a note
+    submitButton.addEventListener('click', async function () {
         const noteText = quill.root.innerHTML; // Get HTML from Quill
         if (noteText) {
             const note = {
@@ -35,10 +66,13 @@ document.addEventListener('DOMContentLoaded', function () {
             };
             submittedNotes.push(note);
             localStorage.setItem('submittedNotes', JSON.stringify(submittedNotes));
-            writeToFirestore(note);
+            localStorage.setItem('textContent', '');
+            const live_summary = await writeToFirestore(note);
+            localStorage.setItem('live_summary', live_summary);
             addNoteToSidebar(note, submittedNotes.length - 1);
             quill.root.innerHTML = ''; // Clear editor after submission
             localStorage.removeItem('textContent');
+            window.location.reload();
         }
     });
 
@@ -55,15 +89,19 @@ document.addEventListener('DOMContentLoaded', function () {
     // Add note to the sidebar
     function addNoteToSidebar(note, index) {
         const noteDiv = document.createElement('div');
-        noteDiv.className = 'note';
-        noteDiv.textContent = note.note_headline;
+        noteDiv.classList.add('note', 'noteHeadline'); // Apply both classes
+
+        noteDiv.innerHTML = `<strong>${note.note_headline || 'New Note'}</strong><br>--------------------`;
+
         noteDiv.addEventListener('click', function () {
             localStorage.setItem('selectedNoteContent', JSON.stringify(note));
             window.open('noteView.html', '_blank');
         });
+        
         notesList.appendChild(noteDiv);
     }
 
+    submittedNotes.sort((a, b) => new Date(b.date_time) - new Date(a.date_time));
     // Load submitted notes on page load
     submittedNotes.forEach((note, index) => {
         addNoteToSidebar(note, index);
@@ -81,6 +119,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
+// const HOSTNAME = 'http://localhost:8080';
 
 async function writeToFirestore(note) {
     try {
@@ -96,6 +135,16 @@ async function writeToFirestore(note) {
                 timestamp: Date.now()
             }),
         });
+
+        if (!response.ok) {
+            console.error('Failed to write to Firestore:', response.status, response.statusText);
+            return null; // Return null or handle the error as needed
+        }
+        
+        const data = await response.json();  // Correctly parse the JSON response
+        console.log("TEST");
+        console.log(data);
+        return data.message;
     } catch (error) {
         console.error('Error:', error);
     }

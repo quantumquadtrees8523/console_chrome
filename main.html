@@ -1,31 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Console</title>
-    <link rel="stylesheet" href="main.css">
-    <link href="quill.snow.css" rel="stylesheet">
-  </head>
-  <body>
-    <div id="container">
-      <div id="sidebar">
-        <h3 id="sidePanelHeading">Submitted Notes</h3>
-        <div id="notesList"></div>
-      </div>
-
-      <div id="mainArea">
-        <div id="editor-container"></div> <!-- Removed inline height -->
-        <script src="quill.min.js"></script>
-        <div id="buttonContainer">
-          <button id="submitButton">Submit Note</button>
-          <button id="refreshButton">&#x21bb; Refresh Sidebar</button>
-          <button id="clearButton">Clear Note</button>
-        </div>
-      </div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Console</title>
+  <link rel="stylesheet" href="main.css">
+  <link href="quill.snow.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Rubik:ital,wght@0,300..900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="container">
+    <div id="sidebar">
+      <h3 id="sidePanelHeading">Submitted Notes</h3>
+      <div id="notesList"></div>
     </div>
 
-    <div id="noteContent"></div>
-    <script src="functionality.js"></script>
-  </body>
+    <div id="mainArea">
+      <div id="editor-summary-container">
+        <div id="editor-container"></div>
+        <div id="summaryCanvas" class="canvas"></div>
+      </div>
+      <div id="buttonContainer">
+        <button id="submitButton">Submit Note</button>
+        <button id="refreshButton">&#x21bb; Refresh Sidebar</button>
+        <button id="clearButton">Clear Note</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="quill.min.js"></script>
+  <script src="quilljs-markdown.min.js"></script>
+  <script src="functionality.js"></script>
+</body>
 </html>
