@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const refreshButton = document.getElementById('refreshButton');
     const notesList = document.getElementById('notesList');
     
-    // Initialize Quill editor without a toolbar
+    // Initialize Quill editor with Markdown support
     const quill = new Quill('#editor-container', {
         theme: 'snow',
         modules: {
@@ -11,14 +11,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    // Enable Markdown in Quill
+    const quillMarkdownOptions = {};
+    new QuillMarkdown(quill, quillMarkdownOptions);
+
     const liveSummary = localStorage.getItem('live_summary') || 'No summary available';
     
-    summaryCanvas.textContent = liveSummary;
-    
-    // quill.on('text-change', function () {
-    //     summaryCanvas.textContent = quill.root.innerText;  // Update summary dynamically
-    // });
-
+    summaryCanvas.innerHTML = marked.parse(liveSummary);
     
     // Load saved content from localStorage and set it to Quill editor
     const savedContent = localStorage.getItem('textContent') || '';
@@ -66,18 +65,20 @@ document.addEventListener('DOMContentLoaded', function () {
             };
             submittedNotes.push(note);
             localStorage.setItem('submittedNotes', JSON.stringify(submittedNotes));
+            quill.root.innerHTML = ''; // Clear editor after submission
             localStorage.setItem('textContent', '');
             const live_summary = await writeToFirestore(note);
+            console.log(live_summary)
             localStorage.setItem('live_summary', live_summary);
             addNoteToSidebar(note, submittedNotes.length - 1);
-            quill.root.innerHTML = ''; // Clear editor after submission
             localStorage.removeItem('textContent');
-            window.location.reload();
+            // window.location.reload();
         }
     });
 
     // Refresh button functionality
     refreshButton.addEventListener('click', async function () {
+        console.log(localStorage.getItem('live_summary'));
         const notesFromFirestore = await readFromFirestore();
         localStorage.setItem('submittedNotes', JSON.stringify(notesFromFirestore.notes));
         notesList.innerHTML = ''; // Clear current notes
@@ -95,7 +96,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         noteDiv.addEventListener('click', function () {
             localStorage.setItem('selectedNoteContent', JSON.stringify(note));
-            window.open('noteView.html', '_blank');
+            window.location.href = 'noteView.html';
         });
         
         notesList.appendChild(noteDiv);
@@ -140,10 +141,10 @@ async function writeToFirestore(note) {
             console.error('Failed to write to Firestore:', response.status, response.statusText);
             return null; // Return null or handle the error as needed
         }
-        
+
         const data = await response.json();  // Correctly parse the JSON response
-        console.log("TEST");
         console.log(data);
+        console.log("TEST ")
         return data.message;
     } catch (error) {
         console.error('Error:', error);
@@ -152,6 +153,7 @@ async function writeToFirestore(note) {
 
 async function readFromFirestore() {
     const authToken = await getOAuthToken();
+    console.log(authToken);
     try {
         const response = await fetch(`${HOSTNAME}/get_from_firestore`, {
             method: 'GET',

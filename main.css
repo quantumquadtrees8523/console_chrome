@@ -4,6 +4,8 @@ body, html {
   padding: 0;
   height: 100%;
   overflow: hidden; /* Prevent overflow scrolling */
+  background-color: #121212; /* Dark background */
+  color: #E0E0E0; /* Light text */
 }
 
 /* Main container setup */
@@ -18,11 +20,16 @@ body, html {
 /* Sidebar styling */
 #sidebar {
   width: 400px;
-  background-color: #f1f1f1;
+  background-color: #1E1E1E; /* Dark sidebar background */
+  color: #E0E0E0; /* Light sidebar text */
   padding: 20px;
   box-sizing: border-box;
-  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
   overflow-y: auto;
+}
+
+#sidePanelHeading {
+  color: #BB86FC; /* Light purple heading */
 }
 
 /* Main area styling */
@@ -52,9 +59,11 @@ body, html {
   box-sizing: border-box;
   overflow-y: auto;
   padding: 20px;
+  background-color: #2E2E2E; /* Darker background for content areas */
+  color: #E0E0E0; /* Light text for editor and summary canvas */
 }
 
-/* Styling shared by editor and summary canvas */
+/* Quill editor content styling */
 .ql-editor, #summaryCanvas {
   font-size: 18px;
   font-family: "Rubik", sans-serif;
@@ -62,4 +71,54 @@ body, html {
   overflow-x: hidden;
   white-space: pre-wrap;
   word-wrap: break-word;
+  color: #E0E0E0;
+}
+
+.ql-editor {
+  background-color: #2E2E2E; /* Matching editor content area color */
+}
+
+/* Button container layout */
+#buttonContainer {
+  display: flex;
+  justify-content: start;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Button styling */
+#submitButton, #refreshButton, #clearButton {
+  padding: 10px 20px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.2s;
+  background-color: #BB86FC; /* Purple button background */
+  color: #121212; /* Dark text */
+}
+
+#refreshButton { background-color: #03DAC6; } /* Teal for refresh */
+#clearButton { background-color: #CF6679; } /* Red for clear */
+
+#submitButton:hover { background-color: #9A57DC; }
+#refreshButton:hover { background-color: #02B3A4; }
+#clearButton:hover { background-color: #B45562; }
+
+/* Note styling */
+.note {
+  background-color: #333333; /* Darker note background */
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #555555;
+  color: #E0E0E0;
+  cursor: pointer;
+}
+.note:hover { background-color: #444444; }
+
+/* Styling specifically for the headline (inside each note) */
+.noteHeadline {
+  font-weight: bold;
+  font-size: 15px;
+  color: #BB86FC;
 }

@@ -1,0 +1,26 @@
+body, html {
+    margin: 0;
+    padding: 20px;
+    font-family: "Rubik", sans-serif;
+    background-color: #f1f1f1;
+}
+
+#noteContent .note-section {
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-size: 20px;
+    font-family: "Rubik", sans-serif;
+}
+
+#noteContent h3 {
+    margin-top: 0;
+    color: #333;
+    font-size: 18px;
+}
+
+#noteContent .spacer {
+    margin: 30px 0; /* Space between the two sections */
+}
