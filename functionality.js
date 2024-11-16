@@ -15,20 +15,45 @@ document.addEventListener('DOMContentLoaded', function () {
     const quillMarkdownOptions = {};
     new QuillMarkdown(quill, quillMarkdownOptions);
 
-    const liveSummary = localStorage.getItem('live_summary') || 'No summary available';
-    
+    let liveSummary = localStorage.getItem('live_summary');
+    if (!liveSummary) {
+        liveSummary = 'No summary available.'
+    }
+    console.log("liveSummary");
+    console.log(liveSummary);
     summaryCanvas.innerHTML = marked.parse(liveSummary);
     
-    // Load saved content from localStorage and set it to Quill editor
-    const savedContent = localStorage.getItem('textContent') || '';
-    quill.root.innerHTML = savedContent;
+    // Load saved content and timestamp from localStorage
+    const savedContentData = JSON.parse(localStorage.getItem('textContent') || '{"content":"", "timestamp":null}');
+    const currentTime = Date.now();
+    const ONE_DAY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+    // Check if content is older than 24 hours
+    if (savedContentData.content && savedContentData.timestamp && (currentTime - savedContentData.timestamp > ONE_DAY)) {
+        // Content is old, submit it and clear
+        const note = {
+            human_note: { note: savedContentData.content },
+            date_time: new Date().toUTCString(),
+        };
+        writeToFirestore(note).then(live_summary => {
+            if (live_summary) {
+                localStorage.setItem('live_summary', live_summary);
+            }
+            // Clear the editor and stored content
+            quill.root.innerHTML = '';
+            localStorage.setItem('textContent', JSON.stringify({content: '', timestamp: null}));
+        });
+    } else {
+        // Load the saved content if it exists and isn't too old
+        quill.root.innerHTML = savedContentData.content;
+    }
 
     // Load submitted notes from localStorage
     const storedNotes = localStorage.getItem('submittedNotes');
     let submittedNotes;
 
     try {
-        submittedNotes = storedNotes ? JSON.parse(storedNotes) : [];
+        submittedNotes = storedNotes !== undefined && storedNotes !== null ? JSON.parse(storedNotes) : [];
     } catch (error) {
         console.error("Error parsing storedNotes:", error);
         submittedNotes = [];
@@ -37,21 +62,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // Optional chaining with nullish coalescing to make it more robust
     submittedNotes = Array.isArray(submittedNotes) ? submittedNotes : [];    
 
-    // Save content from Quill editor to localStorage
+    // Save content from Quill editor to localStorage with timestamp
     quill.on('text-change', function () {
-        localStorage.setItem('textContent', quill.root.innerHTML);
+        localStorage.setItem('textContent', JSON.stringify({
+            content: quill.root.innerHTML,
+            timestamp: Date.now()
+        }));
     });
 
     document.addEventListener('keydown', function (event) {
-        // Check if Command (metaKey) + S (key = 's') is pressed
         if (event.metaKey && event.key === 's') {
-            event.preventDefault();  // Prevent the default save action
-    
-            // Place your custom save logic here, for example:
-            console.log("Command + S was pressed - Default action prevented");
-            
-            // Call a custom save function if needed
-            // customSaveFunction();
+            event.preventDefault();
         }
     });
 
@@ -66,13 +87,14 @@ document.addEventListener('DOMContentLoaded', function () {
             submittedNotes.push(note);
             localStorage.setItem('submittedNotes', JSON.stringify(submittedNotes));
             quill.root.innerHTML = ''; // Clear editor after submission
-            localStorage.setItem('textContent', '');
+            localStorage.setItem('textContent', JSON.stringify({content: '', timestamp: null}));
             const live_summary = await writeToFirestore(note);
-            console.log(live_summary)
+            console.log('live_summary');
+            console.log(live_summary);
             localStorage.setItem('live_summary', live_summary);
             addNoteToSidebar(note, submittedNotes.length - 1);
             localStorage.removeItem('textContent');
-            // window.location.reload();
+            window.location.reload();
         }
     });
 
@@ -98,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
             localStorage.setItem('selectedNoteContent', JSON.stringify(note));
             window.location.href = 'noteView.html';
         });
-        
+        console.log(notesList);
         notesList.appendChild(noteDiv);
     }
 
@@ -119,8 +141,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
-// const HOSTNAME = 'http://localhost:8080';
+// const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
+const HOSTNAME = 'http://localhost:8080';
 
 async function writeToFirestore(note) {
     try {
@@ -143,8 +165,6 @@ async function writeToFirestore(note) {
         }
 
         const data = await response.json();  // Correctly parse the JSON response
-        console.log(data);
-        console.log("TEST ")
         return data.message;
     } catch (error) {
         console.error('Error:', error);
@@ -153,7 +173,6 @@ async function writeToFirestore(note) {
 
 async function readFromFirestore() {
     const authToken = await getOAuthToken();
-    console.log(authToken);
     try {
         const response = await fetch(`${HOSTNAME}/get_from_firestore`, {
             method: 'GET',
@@ -162,7 +181,7 @@ async function readFromFirestore() {
                 'Content-Type': 'application/json',
             },
         });
-
+        console.log(response.status);
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Error response body:', errorText);
