@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const submitButton = document.getElementById('submitButton');
     const refreshButton = document.getElementById('refreshButton');
+    const feedbackButton = document.getElementById('feedbackButton');
     const notesList = document.getElementById('notesList');
     
     // Initialize Quill editor with Markdown support
@@ -19,14 +20,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!liveSummary) {
         liveSummary = 'No summary available.'
     }
-    console.log("liveSummary");
-    console.log(liveSummary);
+    
     summaryCanvas.innerHTML = marked.parse(liveSummary);
     
     // Load saved content and timestamp from localStorage
     const savedContentData = JSON.parse(localStorage.getItem('textContent') || '{"content":"", "timestamp":null}');
     const currentTime = Date.now();
-    const ONE_DAY = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    const ONE_DAY = 24 * 60 * 60 * 1000;
 
     // Check if content is older than 24 hours
     if (savedContentData.content && savedContentData.timestamp && (currentTime - savedContentData.timestamp > ONE_DAY)) {
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // // Submit a note
     submitButton.addEventListener('click', async function () {
-        const noteText = quill.root.innerHTML; // Get HTML from Quill
+        const noteText = String(quill.root.innerHTML).trim()
         if (noteText) {
             const note = {
                 human_note: { note: noteText },
@@ -88,19 +88,16 @@ document.addEventListener('DOMContentLoaded', function () {
             localStorage.setItem('submittedNotes', JSON.stringify(submittedNotes));
             quill.root.innerHTML = ''; // Clear editor after submission
             localStorage.setItem('textContent', JSON.stringify({content: '', timestamp: null}));
-            const live_summary = await writeToFirestore(note);
-            console.log('live_summary');
-            console.log(live_summary);
-            localStorage.setItem('live_summary', live_summary);
             addNoteToSidebar(note, submittedNotes.length - 1);
             localStorage.removeItem('textContent');
+            const live_summary = await writeToFirestore(note);
+            localStorage.setItem('live_summary', live_summary);
             window.location.reload();
         }
     });
 
     // Refresh button functionality
     refreshButton.addEventListener('click', async function () {
-        console.log(localStorage.getItem('live_summary'));
         const notesFromFirestore = await readFromFirestore();
         localStorage.setItem('submittedNotes', JSON.stringify(notesFromFirestore.notes));
         notesList.innerHTML = ''; // Clear current notes
@@ -108,6 +105,10 @@ document.addEventListener('DOMContentLoaded', function () {
             addNoteToSidebar(note, index);
         });
     });
+
+    feedbackButton.addEventListener('click', function() {
+        window.open("https://forms.gle/fNTzp3f6yy41GJLUA", "_blank")
+    })
 
     // Add note to the sidebar
     function addNoteToSidebar(note, index) {
@@ -117,10 +118,10 @@ document.addEventListener('DOMContentLoaded', function () {
         noteDiv.innerHTML = `<strong>${note.note_headline || 'New Note'}</strong><br>--------------------`;
 
         noteDiv.addEventListener('click', function () {
-            localStorage.setItem('selectedNoteContent', JSON.stringify(note));
+            console.log(note);
+            localStorage.setItem('selectedNoteContent', note.human_note);
             window.location.href = 'noteView.html';
         });
-        console.log(notesList);
         notesList.appendChild(noteDiv);
     }
 
@@ -141,8 +142,8 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
-const HOSTNAME = 'http://localhost:8080';
+const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
+// const HOSTNAME = 'http://localhost:8080';
 
 async function writeToFirestore(note) {
     try {
@@ -163,7 +164,6 @@ async function writeToFirestore(note) {
             console.error('Failed to write to Firestore:', response.status, response.statusText);
             return null; // Return null or handle the error as needed
         }
-
         const data = await response.json();  // Correctly parse the JSON response
         return data.message;
     } catch (error) {
@@ -181,7 +181,7 @@ async function readFromFirestore() {
                 'Content-Type': 'application/json',
             },
         });
-        console.log(response.status);
+
         if (!response.ok) {
             const errorText = await response.text();
             console.error('Error response body:', errorText);

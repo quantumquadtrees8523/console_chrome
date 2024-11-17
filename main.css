@@ -87,7 +87,7 @@ body, html {
 }
 
 /* Button styling */
-#submitButton, #refreshButton, #clearButton {
+#submitButton, #refreshButton, #feedbackButton {
   padding: 10px 20px;
   font-size: 14px;
   border: none;
@@ -99,11 +99,11 @@ body, html {
 }
 
 #refreshButton { background-color: #03DAC6; } /* Teal for refresh */
-#clearButton { background-color: #CF6679; } /* Red for clear */
+#feedbackbutton { background-color: #CF6679; } /* Red for feedback */
 
 #submitButton:hover { background-color: #9A57DC; }
 #refreshButton:hover { background-color: #02B3A4; }
-#clearButton:hover { background-color: #B45562; }
+#feedbackbutton:hover { background-color: #ff0022; }
 
 /* Note styling */
 .note {
