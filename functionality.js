@@ -91,7 +91,11 @@ document.addEventListener('DOMContentLoaded', function () {
             addNoteToSidebar(note, submittedNotes.length - 1);
             localStorage.removeItem('textContent');
             const live_summary = await writeToFirestore(note);
-            localStorage.setItem('live_summary', live_summary);
+            if (live_summary === 'undefined' || live_summary.includes('429 Online prediction request quota exceeded for gemini-1.5-flash')) {
+                localStorage.setItem('live_summary', await getLatestSummary())
+            } else {
+                localStorage.setItem('live_summary', live_summary);
+            }
             window.location.reload();
         }
     });
@@ -100,10 +104,14 @@ document.addEventListener('DOMContentLoaded', function () {
     refreshButton.addEventListener('click', async function () {
         const notesFromFirestore = await readFromFirestore();
         localStorage.setItem('submittedNotes', JSON.stringify(notesFromFirestore.notes));
+        const latest_summary = await getLatestSummary();
+        console.log(latest_summary);
+        localStorage.setItem('live_summary', latest_summary);
         notesList.innerHTML = ''; // Clear current notes
         notesFromFirestore.notes.forEach((note, index) => {
             addNoteToSidebar(note, index);
         });
+        window.location.reload()
     });
 
     feedbackButton.addEventListener('click', function() {
@@ -137,13 +145,35 @@ document.addEventListener('DOMContentLoaded', function () {
             localStorage.setItem('submittedNotes', []);
             const notesFromFirestore = await readFromFirestore();
             localStorage.setItem('submittedNotes', JSON.stringify(notesFromFirestore.notes));
-            location.reload();
+            window.location.reload();
         }
     });
 });
 
 const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
 // const HOSTNAME = 'http://localhost:8080';
+
+async function getLatestSummary() {
+    try {
+        const authToken = await getOAuthToken();
+        const response = await fetch(`${HOSTNAME}/get_latest_summary`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${authToken}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            console.error('Failed to read latest summary:', response.status, response.statusText);
+            return null; // Return null or handle the error as needed
+        }
+        const data = await response.json();  // Correctly parse the JSON response
+        return data.summary;
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
 
 async function writeToFirestore(note) {
     try {
@@ -165,6 +195,7 @@ async function writeToFirestore(note) {
             return null; // Return null or handle the error as needed
         }
         const data = await response.json();  // Correctly parse the JSON response
+        console.log(data);
         return data.message;
     } catch (error) {
         console.error('Error:', error);
