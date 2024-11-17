@@ -88,15 +88,16 @@ document.addEventListener('DOMContentLoaded', function () {
             localStorage.setItem('submittedNotes', JSON.stringify(submittedNotes));
             quill.root.innerHTML = ''; // Clear editor after submission
             localStorage.setItem('textContent', JSON.stringify({content: '', timestamp: null}));
-            addNoteToSidebar(note, submittedNotes.length - 1);
+            displayNotesPage(1); // Reset to first page after new submission
             localStorage.removeItem('textContent');
+            // window.location.reload();
             const live_summary = await writeToFirestore(note);
             if (live_summary === 'undefined' || live_summary.includes('429 Online prediction request quota exceeded for gemini-1.5-flash')) {
                 localStorage.setItem('live_summary', await getLatestSummary())
             } else {
                 localStorage.setItem('live_summary', live_summary);
             }
-            window.location.reload();
+            // window.location.reload();
         }
     });
 
@@ -108,9 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log(latest_summary);
         localStorage.setItem('live_summary', latest_summary);
         notesList.innerHTML = ''; // Clear current notes
-        notesFromFirestore.notes.forEach((note, index) => {
-            addNoteToSidebar(note, index);
-        });
+        displayNotesPage(1); // Reset to first page after refresh
         window.location.reload()
     });
 
@@ -133,25 +132,76 @@ document.addEventListener('DOMContentLoaded', function () {
         notesList.appendChild(noteDiv);
     }
 
+    // Pagination functions
+    function createPaginationControls(totalPages, currentPage) {
+        const paginationDiv = document.createElement('div');
+        paginationDiv.classList.add('pagination');
+        
+        // Previous button
+        if (currentPage > 1) {
+            const prevButton = document.createElement('button');
+            prevButton.textContent = 'Previous';
+            prevButton.addEventListener('click', () => displayNotesPage(currentPage - 1));
+            paginationDiv.appendChild(prevButton);
+        }
+        
+        // Page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            const pageButton = document.createElement('button');
+            pageButton.textContent = i;
+            if (i === currentPage) {
+                pageButton.classList.add('active');
+            }
+            pageButton.addEventListener('click', () => displayNotesPage(i));
+            paginationDiv.appendChild(pageButton);
+        }
+        
+        // Next button
+        if (currentPage < totalPages) {
+            const nextButton = document.createElement('button');
+            nextButton.textContent = 'Next';
+            nextButton.addEventListener('click', () => displayNotesPage(currentPage + 1));
+            paginationDiv.appendChild(nextButton);
+        }
+        
+        return paginationDiv;
+    }
+
+    function displayNotesPage(pageNumber) {
+        const notesPerPage = 50;
+        const startIndex = (pageNumber - 1) * notesPerPage;
+        const endIndex = startIndex + notesPerPage;
+        
+        notesList.innerHTML = ''; // Clear current notes
+        
+        const paginatedNotes = submittedNotes.slice(startIndex, endIndex);
+        paginatedNotes.forEach((note, index) => {
+            addNoteToSidebar(note, startIndex + index);
+        });
+        
+        // Add pagination controls
+        const totalPages = Math.ceil(submittedNotes.length / notesPerPage);
+        const paginationControls = createPaginationControls(totalPages, pageNumber);
+        notesList.appendChild(paginationControls);
+    }
+
     submittedNotes.sort((a, b) => new Date(b.date_time) - new Date(a.date_time));
-    // Load submitted notes on page load
-    submittedNotes.forEach((note, index) => {
-        addNoteToSidebar(note, index);
-    });
+    // Initial display of first page
+    displayNotesPage(1);
 
     // Refresh the page when it becomes visible
     document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState === 'visible') {
             localStorage.setItem('submittedNotes', []);
-            const notesFromFirestore = await readFromFirestore();
+            // const notesFromFirestore = await readFromFirestore();
             localStorage.setItem('submittedNotes', JSON.stringify(notesFromFirestore.notes));
             window.location.reload();
         }
     });
 });
 
-const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
-// const HOSTNAME = 'http://localhost:8080';
+// const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
+const HOSTNAME = 'http://localhost:8080';
 
 async function getLatestSummary() {
     try {
@@ -177,6 +227,7 @@ async function getLatestSummary() {
 
 async function writeToFirestore(note) {
     try {
+        console.log(note);
         const authToken = await getOAuthToken();
         const response = await fetch(`${HOSTNAME}/write_to_firestore`, {
             method: 'POST',
