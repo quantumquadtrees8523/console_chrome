@@ -3,6 +3,60 @@ document.addEventListener('DOMContentLoaded', function () {
     const refreshButton = document.getElementById('refreshButton');
     const feedbackButton = document.getElementById('feedbackButton');
     const notesList = document.getElementById('notesList');
+
+    const authButton = document.getElementById('authButton');
+    const logoutButton = document.getElementById('logoutButton');
+
+    // Attach event listeners
+    authButton.addEventListener('click', handleLogin);
+    logoutButton.addEventListener('click', handleLogout);
+
+    async function checkAuthToken() {
+        try {
+            const token = await getOAuthToken();
+            if (token) {
+                // User is logged in
+                authButton.style.display = 'none';
+                logoutButton.style.display = 'inline-block';
+            }
+        } catch (error) {
+            if (error.message === 'OAuth token required') {
+                // User is not logged in
+                authButton.style.display = 'inline-block';
+                logoutButton.style.display = 'none';
+            }
+        }
+    }
+
+    async function handleLogin() {
+        try {
+            const token = await getOAuthToken();
+            if (token) {
+                console.log('Logged in successfully:', token);
+                authButton.style.display = 'none';
+                logoutButton.style.display = 'inline-block';
+                window.location.reload(); // Optional: Reload to fetch data after login
+            }
+        } catch (error) {
+            console.error('Login failed:', error);
+        }
+    }
+
+    async function handleLogout() {
+        chrome.identity.removeCachedAuthToken({ token: await getOAuthToken() }, function () {
+            if (chrome.runtime.lastError) {
+                console.error('Logout error:', chrome.runtime.lastError);
+            } else {
+                console.log('Logged out successfully');
+                authButton.style.display = 'inline-block';
+                logoutButton.style.display = 'none';
+                window.location.reload(); // Optional: Reload to reset the app state
+            }
+        });
+    }
+
+    // Check initial authentication state
+    checkAuthToken();
     
     // Initialize Quill editor with Markdown support
     const quill = new Quill('#editor-container', {
@@ -20,7 +74,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!liveSummary) {
         liveSummary = 'No summary available.'
     }
-    
+
     summaryCanvas.innerHTML = marked.parse(liveSummary);
     
     // Load saved content and timestamp from localStorage
@@ -326,7 +380,7 @@ function promptForAuth() {
 
 function getOAuthToken() {
     return new Promise((resolve, reject) => {
-        chrome.identity.getAuthToken({ interactive: false }, function(token) {
+        chrome.identity.getAuthToken({ interactive: true }, function(token) {
             if (chrome.runtime.lastError || !token) {
                 reject(new Error('OAuth token required'));
             } else {
