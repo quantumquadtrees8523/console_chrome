@@ -42,6 +42,10 @@ document.addEventListener('DOMContentLoaded', function () {
             // Clear the editor and stored content
             quill.root.innerHTML = '';
             localStorage.setItem('textContent', JSON.stringify({content: '', timestamp: null}));
+        }).catch(error => {
+            if (error.message === 'OAuth token required') {
+                promptForAuth();
+            }
         });
     } else {
         // Load the saved content if it exists and isn't too old
@@ -84,33 +88,48 @@ document.addEventListener('DOMContentLoaded', function () {
                 human_note: { note: noteText },
                 date_time: new Date().toUTCString(),
             };
-            submittedNotes.push(note);
-            localStorage.setItem('submittedNotes', JSON.stringify(submittedNotes));
-            quill.root.innerHTML = ''; // Clear editor after submission
-            localStorage.setItem('textContent', JSON.stringify({content: '', timestamp: null}));
-            displayNotesPage(1); // Reset to first page after new submission
-            localStorage.removeItem('textContent');
-            // window.location.reload();
-            const live_summary = await writeToFirestore(note);
-            if (live_summary === 'undefined' || live_summary.includes('429 Online prediction request quota exceeded for gemini-1.5-flash')) {
-                localStorage.setItem('live_summary', await getLatestSummary())
-            } else {
-                localStorage.setItem('live_summary', live_summary);
+            try {
+                submittedNotes.push(note);
+                localStorage.setItem('submittedNotes', JSON.stringify(submittedNotes));
+                quill.root.innerHTML = ''; // Clear editor after submission
+                localStorage.setItem('textContent', JSON.stringify({content: '', timestamp: null}));
+                displayNotesPage(1); // Reset to first page after new submission
+                localStorage.removeItem('textContent');
+                
+                const live_summary = await writeToFirestore(note);
+                if (live_summary === 'undefined' || live_summary.includes('429 Online prediction request quota exceeded for gemini-1.5-flash')) {
+                    localStorage.setItem('live_summary', await getLatestSummary())
+                } else {
+                    localStorage.setItem('live_summary', live_summary);
+                }
+                window.location.reload();
+            } catch (error) {
+                if (error.message === 'OAuth token required') {
+                    promptForAuth();
+                }
             }
-            // window.location.reload();
         }
+    });
+
+    authButton.addEventListener('click', function() {
+        promptForAuth();
     });
 
     // Refresh button functionality
     refreshButton.addEventListener('click', async function () {
-        const notesFromFirestore = await readFromFirestore();
-        localStorage.setItem('submittedNotes', JSON.stringify(notesFromFirestore.notes));
-        const latest_summary = await getLatestSummary();
-        console.log(latest_summary);
-        localStorage.setItem('live_summary', latest_summary);
-        notesList.innerHTML = ''; // Clear current notes
-        displayNotesPage(1); // Reset to first page after refresh
-        window.location.reload()
+        try {
+            const notesFromFirestore = await readFromFirestore();
+            localStorage.setItem('submittedNotes', JSON.stringify(notesFromFirestore.notes));
+            const latest_summary = await getLatestSummary();
+            localStorage.setItem('live_summary', latest_summary);
+            notesList.innerHTML = ''; // Clear current notes
+            displayNotesPage(1); // Reset to first page after refresh
+            window.location.reload();
+        } catch (error) {
+            if (error.message === 'OAuth token required') {
+                promptForAuth();
+            }
+        }
     });
 
     feedbackButton.addEventListener('click', function() {
@@ -125,7 +144,6 @@ document.addEventListener('DOMContentLoaded', function () {
         noteDiv.innerHTML = `<strong>${note.note_headline || 'New Note'}</strong><br>--------------------`;
 
         noteDiv.addEventListener('click', function () {
-            console.log(note);
             localStorage.setItem('selectedNoteContent', note.human_note);
             window.location.href = 'noteView.html';
         });
@@ -192,16 +210,22 @@ document.addEventListener('DOMContentLoaded', function () {
     // Refresh the page when it becomes visible
     document.addEventListener('visibilitychange', async () => {
         if (document.visibilityState === 'visible') {
-            localStorage.setItem('submittedNotes', []);
-            // const notesFromFirestore = await readFromFirestore();
-            localStorage.setItem('submittedNotes', JSON.stringify(notesFromFirestore.notes));
-            window.location.reload();
+            try {
+                localStorage.setItem('submittedNotes', []);
+                const notesFromFirestore = await readFromFirestore();
+                localStorage.setItem('submittedNotes', JSON.stringify(notesFromFirestore.notes));
+                window.location.reload();
+            } catch (error) {
+                if (error.message === 'OAuth token required') {
+                    promptForAuth();
+                }
+            }
         }
     });
 });
 
-// const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
-const HOSTNAME = 'http://localhost:8080';
+const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
+// const HOSTNAME = 'http://localhost:8080';
 
 async function getLatestSummary() {
     try {
@@ -216,18 +240,20 @@ async function getLatestSummary() {
 
         if (!response.ok) {
             console.error('Failed to read latest summary:', response.status, response.statusText);
-            return null; // Return null or handle the error as needed
+            return null;
         }
-        const data = await response.json();  // Correctly parse the JSON response
+        const data = await response.json();
         return data.summary;
     } catch (error) {
         console.error('Error:', error);
+        if (error.message === 'OAuth token required') {
+            throw error;
+        }
     }
 }
 
 async function writeToFirestore(note) {
     try {
-        console.log(note);
         const authToken = await getOAuthToken();
         const response = await fetch(`${HOSTNAME}/write_to_firestore`, {
             method: 'POST',
@@ -243,19 +269,21 @@ async function writeToFirestore(note) {
 
         if (!response.ok) {
             console.error('Failed to write to Firestore:', response.status, response.statusText);
-            return null; // Return null or handle the error as needed
+            return null;
         }
-        const data = await response.json();  // Correctly parse the JSON response
-        console.log(data);
+        const data = await response.json();
         return data.message;
     } catch (error) {
         console.error('Error:', error);
+        if (error.message === 'OAuth token required') {
+            throw error;
+        }
     }
 }
 
 async function readFromFirestore() {
-    const authToken = await getOAuthToken();
     try {
+        const authToken = await getOAuthToken();
         const response = await fetch(`${HOSTNAME}/get_from_firestore`, {
             method: 'GET',
             headers: {
@@ -275,15 +303,32 @@ async function readFromFirestore() {
 
     } catch (error) {
         console.error('Fetch error:', error);
+        if (error.message === 'OAuth token required') {
+            throw error;
+        }
         return [];
     }
 }
 
+function promptForAuth() {
+    chrome.identity.getAuthToken({ interactive: true }, function(token) {
+        if (chrome.runtime.lastError) {
+            console.error('Auth error:', chrome.runtime.lastError);
+            // Handle auth error (e.g., show error message to user)
+        } else if (!token) {
+            console.error('No token received');
+            // Handle missing token
+        } else {
+            window.location.reload(); // Refresh page after successful auth
+        }
+    });
+}
+
 function getOAuthToken() {
     return new Promise((resolve, reject) => {
-        chrome.identity.getAuthToken({ interactive: true }, function(token) {
+        chrome.identity.getAuthToken({ interactive: false }, function(token) {
             if (chrome.runtime.lastError || !token) {
-                reject(chrome.runtime.lastError);
+                reject(new Error('OAuth token required'));
             } else {
                 resolve(token);
             }
