@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Display notes with pagination
         function displayNotesPage(pageNumber) {
-            const notesPerPage = 50;
+            const notesPerPage = 5;
             const startIndex = (pageNumber - 1) * notesPerPage;
             const endIndex = startIndex + notesPerPage;
             
@@ -381,7 +381,8 @@ function createPaginationControls(totalPages, currentPage) {
         paginationDiv.appendChild(pageButton);
     }
     
-    if (currentPage < totalPages) {
+
+    if (currentPage < totalPages && numButtons < 3) {
         const nextButton = document.createElement('button');
         nextButton.textContent = 'Next';
         nextButton.addEventListener('click', () => displayNotesPage(currentPage + 1));
