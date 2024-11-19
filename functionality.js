@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    // Initialize key DOM elements
+
     const submitButton = document.getElementById('submitButton');
     const refreshButton = document.getElementById('refreshButton');
     const feedbackButton = document.getElementById('feedbackButton');
