@@ -85,17 +85,13 @@ document.addEventListener('DOMContentLoaded', function () {
     // Optimized Background Sync Manager
     const BackgroundSync = {
         async syncData() {
-            console.log("background sync data");
             try {
                 const [notesFromFirestore, latestSummary] = await Promise.all([
                     NetworkManager.request(`${HOSTNAME}/get_from_firestore`),
                     NetworkManager.request(`${HOSTNAME}/get_latest_summary`)
                 ]);
-                console.log(1);
                 CacheManager.set('submittedNotes', notesFromFirestore.notes || []);
-                console.log(2);
                 CacheManager.set('live_summary', latestSummary.summary || 'No summary available');
-                console.log(3);
                 return { notes: notesFromFirestore.notes, summary: latestSummary.summary };
             } catch (error) {
                 console.error('Background sync failed:', error);
@@ -138,6 +134,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const notesList = document.getElementById('notesList');
     const summaryCanvas = document.getElementById('summaryCanvas');
     
+    // Submission Status
+    const loadingState = document.createElement('div');
+    loadingState.id = 'loadingState';
+    loadingState.style.cssText = 'position: fixed; top: 20px; right: 20px; padding: 10px; border-radius: 5px; display: none; background-color: black; color: white;';
+    document.body.appendChild(loadingState);
+
     // Initialize Quill editor with Markdown support
     const quill = new Quill('#editor-container', {
         theme: 'snow',
@@ -153,10 +155,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initial data loading and setup
     function initializeApp() {
         // Load live summary
-        console.log("HERE");
         let liveSummary = CacheManager.get('live_summary') || 'No summary available.';
         summaryCanvas.innerHTML = marked.parse(liveSummary);
-        console.log("HERE");
         // Load and validate submitted notes
         let submittedNotes = CacheManager.get('submittedNotes') || [];
         submittedNotes = Array.isArray(submittedNotes) ? submittedNotes : [];
@@ -183,7 +183,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     timestamp: Date.now()
                 })
             }).then(response => {
-                console.log(response.live_summary);
                 if (response.live_summary) {
                     CacheManager.set('live_summary', response.live_summary);
                 }
@@ -206,9 +205,10 @@ document.addEventListener('DOMContentLoaded', function () {
             paginatedNotes.forEach((note, index) => {
                 const noteDiv = document.createElement('div');
                 noteDiv.classList.add('note', 'noteHeadline');
-                noteDiv.innerHTML = `<strong>${note.note_headline || 'New Note'}</strong><br>--------------------`;
+                const truncatedNote = (note.note_headline || note.human_note.note).substring(0, 100);
+                noteDiv.innerHTML = `<strong>${truncatedNote}${truncatedNote.length === 100 ? '...' : ''}</strong><br>--------------------`;
                 noteDiv.addEventListener('click', () => {
-                    localStorage.setItem('selectedNoteContent', note.human_note);
+                    localStorage.setItem('selectedNoteContent', note.human_note.note ? note.human_note.note : note.human_note);
                     window.location.href = 'noteView.html';
                 });
                 notesList.appendChild(noteDiv);
@@ -229,10 +229,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 content: quill.root.innerHTML,
                 timestamp: Date.now()
             });
-        }, 500));
+        }, 100));
     }
 
-    // Event Listeners with Performance Optimizations
+    // Modify submit button handler
     submitButton.addEventListener('click', debounce(async function () {
         const noteText = String(quill.root.innerHTML).trim();
         if (noteText) {
@@ -240,8 +240,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 human_note: { note: noteText },
                 date_time: new Date().toUTCString(),
             };
-
             try {
+                loadingState.style.display = 'block';
+                loadingState.style.backgroundColor = '#ffd700';
+                loadingState.style.color = 'black';
+                loadingState.textContent = 'Sending note...';
+    
+                quill.root.innerHTML = '';
+                CacheManager.clear('textContent');
+                
+                const submittedNotes = CacheManager.get('submittedNotes') || [];
+                submittedNotes.push(note);
+                CacheManager.set('submittedNotes', submittedNotes);
+                
                 const result = await NetworkManager.request(`${HOSTNAME}/write_to_firestore`, {
                     method: 'POST',
                     body: JSON.stringify({
@@ -249,33 +260,37 @@ document.addEventListener('DOMContentLoaded', function () {
                         timestamp: Date.now()
                     })
                 });
-
-                // Update local storage efficiently
-                const submittedNotes = CacheManager.get('submittedNotes') || [];
-                submittedNotes.push(note);
-                CacheManager.set('submittedNotes', submittedNotes);
+    
+                loadingState.style.backgroundColor = '#90EE90';
+                loadingState.textContent = 'Note saved!';
                 
-                // Clear editor and reset
-                quill.root.innerHTML = '';
-                CacheManager.clear('textContent');
-                
-                // Optionally handle summary
-                if (result.live_summary) {
-                    CacheManager.set('live_summary', result.live_summary);
+                const latestSummary = await NetworkManager.request(`${HOSTNAME}/get_latest_summary`);
+                if (latestSummary) {
+                    CacheManager.set('live_summary', latestSummary.summary || 'No summary available');
                 }
-
-                window.location.reload();
+                
+                setTimeout(() => {
+                    loadingState.style.display = 'none';
+                    window.location.reload();
+                }, 1000);
+    
             } catch (error) {
+                console.error(error);
+                loadingState.style.backgroundColor = '#FF0000';
+                loadingState.textContent = 'Error saving note';
+                
                 if (error.message === 'OAuth token required') {
                     promptForAuth();
                 }
+                
+                setTimeout(() => loadingState.style.display = 'none', 3000);
             }
         }
     }, 300));
 
     refreshButton.addEventListener('click', debounce(async function () {
         await BackgroundSync.syncData();
-        // window.location.reload()
+        window.location.reload()
     }, 300));
 
     feedbackButton.addEventListener('click', () => {
@@ -286,6 +301,12 @@ document.addEventListener('DOMContentLoaded', function () {
     BackgroundSync.setupPeriodicSync();
     // Initialize the application
     initializeApp();
+
+    document.addEventListener('visibilitychange', async function() {
+        if (document.visibilityState === 'visible') {
+            window.location.reload();
+        }
+    });
 });
 
 // OAuth and Authentication Utilities
