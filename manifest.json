@@ -20,5 +20,10 @@
   },
   "chrome_url_overrides": {
     "newtab": "main.html" 
+  },
+  "icons": {
+    "16": "./console_logo.png",
+    "48": "./console_logo.png",
+    "128": "./console_logo.png"
   }
 }

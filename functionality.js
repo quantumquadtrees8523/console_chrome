@@ -133,6 +133,31 @@ document.addEventListener('DOMContentLoaded', function () {
     const feedbackButton = document.getElementById('feedbackButton');
     const notesList = document.getElementById('notesList');
     const summaryCanvas = document.getElementById('summaryCanvas');
+    const dailyDigestButton = document.getElementById('dailyDigestButton');
+    const calendarEventsButton = document.getElementById('calendarEventsButton');
+    const amazonPurchasesButton = document.getElementById('amazonPurchasesButton');
+    const financialSummariesButton = document.getElementById('financialSummariesButton');
+    
+    // Add click handlers for new buttons
+    dailyDigestButton.addEventListener('click', () => {
+        localStorage.setItem('pageTitle', 'Daily Digest');
+        window.location.href = 'contentPage.html';
+    });
+
+    calendarEventsButton.addEventListener('click', () => {
+        localStorage.setItem('pageTitle', 'Created Calendar Events');
+        window.location.href = 'contentPage.html';
+    });
+
+    amazonPurchasesButton.addEventListener('click', () => {
+        localStorage.setItem('pageTitle', 'Suggested Amazon Purchases');
+        window.location.href = 'contentPage.html';
+    });
+
+    financialSummariesButton.addEventListener('click', () => {
+        localStorage.setItem('pageTitle', 'Financial Summaries');
+        window.location.href = 'contentPage.html';
+    });
     
     // Submission Status
     const loadingState = document.createElement('div');

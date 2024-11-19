@@ -32,6 +32,36 @@ body, html {
   color: #BB86FC; /* Light purple heading */
 }
 
+/* Sidebar buttons styling */
+#sidebarButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#dailyDigestButton,
+#calendarEventsButton,
+#amazonPurchasesButton,
+#financialSummariesButton {
+  padding: 15px;
+  font-size: 16px;
+  font-family: 'Montserrat', sans-serif;
+  background-color: #2E2E2E;
+  color: #E0E0E0;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+#dailyDigestButton:hover,
+#calendarEventsButton:hover,
+#amazonPurchasesButton:hover,
+#financialSummariesButton:hover {
+  background-color: #3E3E3E;
+  transform: scale(1.02);
+}
+
 /* Main area styling */
 #mainArea {
   display: flex;
