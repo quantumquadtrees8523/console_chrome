@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
+    const HOSTNAME = 'http://localhost:8080' //https://us-central1-jarvis-8ce89.cloudfunctions.net';
 
     // Performance Utility Functions
     const throttle = (func, limit) => {
@@ -139,9 +139,11 @@ document.addEventListener('DOMContentLoaded', function () {
     // const financialSummariesButton = document.getElementById('financialSummariesButton');
     
     // Add click handlers for new buttons
-    dailyDigestButton.addEventListener('click', () => {
+    dailyDigestButton.addEventListener('click', async () => {
+        console.log("SENDING REQUEST");
         localStorage.setItem('pageTitle', 'Daily Digest');
-        window.location.href = 'contentPage.html';
+        localStorage.setItem('selectedNoteContent', 'loading daily digest...');
+        window.location.href = 'noteView.html';
     });
 
     // calendarEventsButton.addEventListener('click', () => {
@@ -234,6 +236,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 noteDiv.innerHTML = `<strong>${truncatedNote}${truncatedNote.length === 100 ? '...' : ''}</strong><br>--------------------`;
                 noteDiv.addEventListener('click', () => {
                     localStorage.setItem('selectedNoteContent', note.human_note.note ? note.human_note.note : note.human_note);
+                    localStorage.setItem('pageTitle', note.note_headline);
                     window.location.href = 'noteView.html';
                 });
                 notesList.appendChild(noteDiv);
