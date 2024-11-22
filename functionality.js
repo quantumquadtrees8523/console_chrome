@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Display notes with pagination
         function displayNotesPage(pageNumber) {
-            const notesPerPage = 5;
+            const notesPerPage = 10;
             const startIndex = (pageNumber - 1) * notesPerPage;
             const endIndex = startIndex + notesPerPage;
             
@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Pagination controls
             const totalPages = Math.ceil(submittedNotes.length / notesPerPage);
-            const paginationControls = createPaginationControls(totalPages, pageNumber);
+            const paginationControls = createPaginationControls(pageNumber, totalPages, displayNotesPage);
             notesList.appendChild(paginationControls);
         }
 
@@ -360,34 +360,46 @@ function getOAuthToken() {
 }
 
 // Utility: Pagination Controls
-function createPaginationControls(totalPages, currentPage) {
+function createPaginationControls(currentPage, totalPages, onPageChange) {
+    const paginationContainer = document.createElement('div');
+    paginationContainer.style.position = 'fixed';
+    paginationContainer.style.bottom = '20px';
+    // paginationContainer.style.left = '20px';
+    // paginationContainer.style.width = '360px'; // 400px sidebar - 40px padding
+    // paginationContainer.style.backgroundColor = 'var(--bg-secondary)';
+    // paginationContainer.style.padding = '10px';
+    // paginationContainer.style.borderTop = '1px solid var(--border-color)';
+    
     const paginationDiv = document.createElement('div');
     paginationDiv.classList.add('pagination');
     
+    const prevButton = document.createElement('button');
+    prevButton.textContent = 'Previous';
     if (currentPage > 1) {
-        const prevButton = document.createElement('button');
-        prevButton.textContent = 'Previous';
-        prevButton.addEventListener('click', () => displayNotesPage(currentPage - 1));
-        paginationDiv.appendChild(prevButton);
+        prevButton.addEventListener('click', () => onPageChange(currentPage - 1));
+    } else {
+        prevButton.disabled = true;
+        prevButton.style.opacity = '0.5';
+        prevButton.style.cursor = 'not-allowed';
     }
-    
-    for (let i = 1; i <= totalPages; i++) {
-        const pageButton = document.createElement('button');
-        pageButton.textContent = i;
-        if (i === currentPage) {
-            pageButton.classList.add('active');
-        }
-        pageButton.addEventListener('click', () => displayNotesPage(i));
-        paginationDiv.appendChild(pageButton);
-    }
-    
+    paginationDiv.appendChild(prevButton);
 
-    if (currentPage < totalPages && numButtons < 3) {
-        const nextButton = document.createElement('button');
-        nextButton.textContent = 'Next';
-        nextButton.addEventListener('click', () => displayNotesPage(currentPage + 1));
-        paginationDiv.appendChild(nextButton);
+    const nextButton = document.createElement('button');
+    nextButton.textContent = 'Next';
+    if (currentPage < totalPages) {
+        nextButton.addEventListener('click', () => onPageChange(currentPage + 1));
+    } else {
+        nextButton.disabled = true;
+        nextButton.style.opacity = '0.5';
+        nextButton.style.cursor = 'not-allowed';
     }
+    paginationDiv.appendChild(nextButton);
+
+    const pageText = document.createElement('span');
+    pageText.id = 'paginationText';
+    pageText.textContent = `p ${currentPage} / ${totalPages}`;
+    paginationDiv.appendChild(pageText);
     
-    return paginationDiv;
+    paginationContainer.appendChild(paginationDiv);
+    return paginationContainer;
 }

@@ -187,7 +187,7 @@ body, html {
 }
 
 /* Styling specifically for the headline (inside each note) */
-.noteHeadline {
+.noteHeadline, #paginationText {
   font-weight: bold;
   font-size: 15px;
   font-family: 'Montserrat', sans-serif;
@@ -210,5 +210,54 @@ body, html {
 }
 
 #themeToggle:hover {
+  opacity: 0.9;
+}
+
+/* Notes list container */
+#notesList {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+  padding-right: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: #666666 #333333;
+}
+
+#notesList::-webkit-scrollbar {
+  width: 8px;
+}
+
+#notesList::-webkit-scrollbar-track {
+  background: #333333;
+}
+
+#notesList::-webkit-scrollbar-thumb {
+  background-color: #666666;
+  border-radius: 4px;
+}
+
+#notesList::-webkit-scrollbar-thumb:hover {
+  background-color: #888888;
+}
+
+/* Pagination controls */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding: 10px 0;
+}
+
+.pagination button {
+  padding: 8px 15px;
+  background-color: var(--accent-primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 0 10px;
+}
+
+.pagination button:hover {
   opacity: 0.9;
 }
