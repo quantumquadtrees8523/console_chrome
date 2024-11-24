@@ -13,7 +13,9 @@
 // : 
 // "This is a short test.\n"
 
-const HOSTNAME = 'http://localhost:8080'
+const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
+// const HOSTNAME = 'http://localhost:8080'
+
 // Optimized Network Request Manager
 const NetworkManager = {
     async request(url, options = {}) {

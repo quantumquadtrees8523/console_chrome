@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const HOSTNAME = 'http://localhost:8080' //https://us-central1-jarvis-8ce89.cloudfunctions.net';
+    const HOSTNAME = 'https://us-central1-jarvis-8ce89.cloudfunctions.net';
+    // const HOSTNAME = 'http://localhost:8080';
 
     // Performance Utility Functions
     const throttle = (func, limit) => {
@@ -59,6 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             try {
                 const authToken = await getOAuthToken();
+                console.log(authToken);
                 options.headers = {
                     ...defaultOptions.headers,
                     ...options.headers,
@@ -86,6 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const BackgroundSync = {
         async syncData() {
             try {
+                console.log("HERE ERE REREs")
                 const [notesFromFirestore, latestSummary] = await Promise.all([
                     NetworkManager.request(`${HOSTNAME}/get_from_firestore`),
                     NetworkManager.request(`${HOSTNAME}/get_latest_summary`)
@@ -143,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log("SENDING REQUEST");
         localStorage.setItem('pageTitle', 'Daily Digest');
         localStorage.setItem('selectedNoteContent', 'loading daily digest...');
-        window.location.href = 'noteView.html';
+        window.location.href = 'https://jarvis-8ce89.web.app';
     });
 
     // calendarEventsButton.addEventListener('click', () => {
@@ -318,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     refreshButton.addEventListener('click', debounce(async function () {
         await BackgroundSync.syncData();
-        window.location.reload()
+        // window.location.reload()
     }, 300));
 
     feedbackButton.addEventListener('click', () => {
