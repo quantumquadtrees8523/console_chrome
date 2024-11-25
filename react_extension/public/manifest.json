@@ -1,0 +1,30 @@
+{
+"manifest_version": 3,
+"version": "1.0",
+  "name": "Console",
+  "description": "An ai powered notebook for your day to day thoughts. It will automatically do certain things for you.",
+  "permissions": [
+    "alarms",
+    "identity",
+    "storage"
+  ],
+  "oauth2": {
+    "client_id": "538313103766-qsm8f645fcvstaucrmvmi1d8p59sqrhr.apps.googleusercontent.com",
+    "scopes": ["profile", "email", "https://www.googleapis.com/auth/calendar"]
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Open Main Page"
+  },
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]  
+}
