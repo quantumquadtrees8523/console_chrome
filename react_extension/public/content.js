@@ -43,7 +43,7 @@ function showPopup(selectedText, rect) {
     entryButton.style.width = "12px";
     entryButton.style.height = "12px";
     entryButton.style.borderRadius = "50%";
-    entryButton.style.backgroundColor = "#0a99f5";
+    entryButton.style.backgroundColor = "#9e9bc1";
     entryButton.style.cursor = "pointer";
     entryButton.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
     entryButton.style.display = "flex";
