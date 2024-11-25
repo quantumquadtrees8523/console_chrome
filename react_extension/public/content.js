@@ -40,17 +40,19 @@ function showPopup(selectedText, rect) {
     entryButton.id = "highlight-entry";
     entryButton.style.position = "fixed";
     entryButton.style.zIndex = "999999";
-    entryButton.style.width = "12px";
-    entryButton.style.height = "12px";
-    entryButton.style.borderRadius = "50%";
-    entryButton.style.backgroundColor = "#9e9bc1";
+    entryButton.style.width = "40px"; // Made slightly wider for pill shape
+    entryButton.style.height = "30px";
     entryButton.style.cursor = "pointer";
     entryButton.style.boxShadow = "0 2px 4px rgba(0,0,0,0.2)";
     entryButton.style.display = "flex";
     entryButton.style.alignItems = "center";
     entryButton.style.justifyContent = "center";
-    entryButton.style.left = `${rect.right + 5}px`;
-    entryButton.style.top = `${rect.top}px`;
+    entryButton.style.left = `${rect.right - 32}px`; // Adjusted for new width
+    entryButton.style.top = `${rect.top - 40}px`; // Increased offset to position fully above text
+    entryButton.style.backgroundColor = "#000000"; // Black background
+    entryButton.style.borderRadius = "12px"; // Pill shape
+    entryButton.textContent = "🤖";
+    entryButton.style.fontSize = "16px";
 
     // Add hover effect
     entryButton.addEventListener("mouseenter", () => {
@@ -196,8 +198,24 @@ function handleOutsideClick(e) {
     if (clickedOutsidePopup || clickedOutsideEntryButton) {
         removePopup();
         document.removeEventListener("mousedown", handleOutsideClick); // Clean up listener
+        document.removeEventListener("keydown", handleOutsideKeypress); // Clean up keypress listener
     }
 }
+
+function handleOutsideKeypress(e) {
+    const popup = document.getElementById("highlight-popup");
+    const entryButton = document.getElementById("highlight-entry");
+
+    // If popup or entry button exists and user types anywhere
+    if ((popup || entryButton) && !e.metaKey) {
+        removePopup();
+        document.removeEventListener("mousedown", handleOutsideClick);
+        document.removeEventListener("keydown", handleOutsideKeypress);
+    }
+}
+
+// Add keydown listener when showing popup
+document.addEventListener("keydown", handleOutsideKeypress);
 
 function removePopup() {
     document.getElementById("highlight-entry")?.remove();
